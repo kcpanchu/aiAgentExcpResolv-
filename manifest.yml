@@ -1,0 +1,15 @@
+applications:
+  - name: vim-exception-agent
+    memory: 512M
+    no-route: true
+    health-check-type: process
+    buildpacks: [python_buildpack]
+    command: PYTHONPATH=src python -m vim_agent.run
+    env:
+      ECC_DESTINATION: ECC_VIM_AGENT
+      DRY_RUN: "1"
+      AUTO_ENABLED: "0"
+      POST_NOTES: "0"
+      POLL_SECONDS: "300"
+      # ANTHROPIC_API_KEY: bind via user-provided service / credential store, never commit
+    services: [vim-agent-destination, vim-agent-connectivity]

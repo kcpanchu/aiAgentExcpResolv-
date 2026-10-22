@@ -11,7 +11,9 @@ class SapClient(Protocol):
     def get_vendor(self, vendor: str) -> dict: ...
     def find_similar_invoices(self, vendor: str, invoice_ref: str | None, amount: float) -> list[dict]: ...
     def exists(self, doc_number: str) -> bool: ...
+    def list_open_exceptions(self, limit: int = 50) -> list[VimException]: ...
     # --- write: ONLY the executor may call this ---
+    def post_note(self, doc_id: str, text: str) -> dict: ...
     def execute_action(self, doc_id: str, action: Action, params: dict, dry_run: bool) -> dict: ...
 
 
@@ -20,6 +22,8 @@ class MockSapClient:
         self.pos, self.grs = pos or {}, grs or {}
         self.vendors, self.invoices = vendors or {}, invoices or []
         self.executed: list[tuple] = []
+        self.notes: list[tuple] = []
+        self.open_exceptions: list = []
 
     def get_po(self, po_number): return self.pos.get(po_number, {})
     def get_goods_receipts(self, po_number): return self.grs.get(po_number, [])
@@ -31,6 +35,12 @@ class MockSapClient:
     def exists(self, doc_number):
         return any(doc_number in (p.get("number"), *[g["doc"] for g in self.grs.get(p.get("number"), [])])
                    for p in self.pos.values()) or any(i.get("doc") == doc_number for i in self.invoices)
+
+    def list_open_exceptions(self, limit=50): return self.open_exceptions[:limit]
+
+    def post_note(self, doc_id, text):
+        self.notes.append((doc_id, text))
+        return {"ok": True}
 
     def execute_action(self, doc_id, action, params, dry_run):
         if not dry_run:

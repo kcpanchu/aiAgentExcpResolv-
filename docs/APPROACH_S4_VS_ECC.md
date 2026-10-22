@@ -25,6 +25,7 @@ That is why `SapClient` is a Protocol: one adapter per landscape.
 | Time to first value | Faster if RFC access already exists | Faster if released APIs cover your reads |
 
 ## 2. ECC approach (RFC-centric)
+> Superseded for this project: with BTP in front of ECC we use OData via Destination + Cloud Connector. See `ECC_BTP_SETUP.md`.
 ```
 Agent service ──pyrfc/SNC──> SAP Cloud Connector ──> ECC
    reads : Z_VIM_GET_EXCEPTION, BAPI_PO_GETDETAIL, Z_GET_GR(po), Z_FIND_DUP(vendor, ref, amt)

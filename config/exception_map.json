@@ -1,0 +1,9 @@
+{
+  "_comment": "VIM exception reason code -> agent ExceptionType. Codes below are PLACEHOLDERS; replace with your system's codes. Unmapped codes become OTHER, which never auto-resolves.",
+  "PRICE_VAR": "PRICE_VARIANCE",
+  "QTY_VAR": "QTY_VARIANCE",
+  "GR_MISS": "GR_MISSING",
+  "DUP_SUSP": "DUPLICATE_SUSPECT",
+  "NO_PO": "NO_PO",
+  "VEND_MISM": "VENDOR_MISMATCH"
+}
