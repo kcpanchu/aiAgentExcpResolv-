@@ -20,6 +20,15 @@ INTERFACE zif_vim_adapter PUBLIC.
     IMPORTING iv_top TYPE i DEFAULT 50
     EXPORTING et_exc TYPE tt_exception
     EXCEPTIONS not_implemented.
+  "! One page of the archived invoice image. Return the stored format; the BTP service normalises
+  "! TIFF/BMP to PNG (PDF must be rendered to PNG on the ECC/archive side).
+  METHODS get_document_image
+    IMPORTING iv_doc_id     TYPE c
+              iv_page       TYPE i
+    EXPORTING ev_mime       TYPE string
+              ev_page_count TYPE i
+              ev_content    TYPE xstring
+    EXCEPTIONS not_found not_implemented.
   METHODS post_note
     IMPORTING iv_doc_id TYPE c
               iv_text   TYPE string

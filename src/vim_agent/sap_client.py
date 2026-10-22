@@ -1,7 +1,9 @@
 """SAP access boundary. Real implementations (pyrfc / OData) go behind this Protocol."""
 from typing import Protocol
 
-from .models import Action, VimException
+from datetime import date
+
+from .models import Action, ImageResult, VimException
 
 
 class SapClient(Protocol):
@@ -12,6 +14,9 @@ class SapClient(Protocol):
     def find_similar_invoices(self, vendor: str, invoice_ref: str | None, amount: float) -> list[dict]: ...
     def exists(self, doc_number: str) -> bool: ...
     def list_open_exceptions(self, limit: int = 50, offset: int = 0) -> list[VimException]: ...
+    def get_vendor_coding_history(self, vendor: str, company_code: str, limit: int = 100) -> list[dict]: ...
+    def validate_coding(self, company_code: str, line: dict, posting_date: date) -> dict: ...
+    def get_invoice_image(self, doc_id: str, page: int) -> ImageResult | dict: ...
     # --- write: ONLY the executor may call this ---
     def post_note(self, doc_id: str, text: str) -> dict: ...
     def execute_action(self, doc_id: str, action: Action, params: dict, dry_run: bool) -> dict: ...
@@ -24,6 +29,9 @@ class MockSapClient:
         self.executed: list[tuple] = []
         self.notes: list[tuple] = []
         self.open_exceptions: list = []
+        self.coding_history: list[dict] = []
+        self.invalid_coding: dict[str, str] = {}   # field value -> reason; anything else validates
+        self.images: dict[str, list[ImageResult]] = {}
 
     def get_po(self, po_number): return self.pos.get(po_number, {})
     def get_goods_receipts(self, po_number): return self.grs.get(po_number, [])
@@ -37,6 +45,17 @@ class MockSapClient:
                    for p in self.pos.values()) or any(i.get("doc") == doc_number for i in self.invoices)
 
     def list_open_exceptions(self, limit=50, offset=0): return self.open_exceptions[offset:offset + limit]
+
+    def get_vendor_coding_history(self, vendor, company_code, limit=100): return self.coding_history[:limit]
+
+    def validate_coding(self, company_code, line, posting_date):
+        bad = [{"field": f, "value": v, "ok": False, "reason": self.invalid_coding[v]}
+               for f, v in line.items() if v in self.invalid_coding]
+        return {"ok": not bad, "fields": bad}
+
+    def get_invoice_image(self, doc_id, page):
+        pages = self.images.get(doc_id, [])
+        return pages[page - 1] if 1 <= page <= len(pages) else {"error": f"no page {page}"}
 
     def post_note(self, doc_id, text):
         self.notes.append((doc_id, text))

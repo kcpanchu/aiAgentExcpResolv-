@@ -9,6 +9,7 @@ class ExceptionType(str, Enum):
     DUPLICATE_SUSPECT = "DUPLICATE_SUSPECT"
     NO_PO = "NO_PO"
     VENDOR_MISMATCH = "VENDOR_MISMATCH"
+    CODING = "CODING"
     OTHER = "OTHER"
 
 
@@ -18,6 +19,8 @@ class Action(str, Enum):
     ROUTE_TO_BUYER = "ROUTE_TO_BUYER"
     ASSIGN_PO = "ASSIGN_PO"
     PARK_AND_RECHECK = "PARK_AND_RECHECK"
+    APPLY_CODING = "APPLY_CODING"
+    SUGGEST_CODING = "SUGGEST_CODING"
     ESCALATE = "ESCALATE"
 
 
@@ -38,6 +41,7 @@ class VimException:
     po_number: str | None = None
     invoice_ref: str | None = None
     notes: str = ""      # untrusted free text (OCR / email)
+    net_amount: float | None = None   # sum of net lines; needed to reconcile coding lines
 
 
 @dataclass
@@ -47,3 +51,12 @@ class Proposal:
     confidence: float
     evidence: list[str] = field(default_factory=list)   # SAP doc numbers the agent relied on
     params: dict = field(default_factory=dict)
+
+
+@dataclass
+class ImageResult:
+    """One page of the invoice image, already normalised to a model-supported format."""
+    page: int
+    page_count: int
+    media_type: str
+    data: bytes

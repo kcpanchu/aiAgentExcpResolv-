@@ -171,3 +171,6 @@ Open: state-store choice (HANA vs PostgreSQL), model hosting route (direct API v
 - **Execution safety:** `(run_id, action)` is a primary key. A second attempt, or a run that died between "begin" and "finish", is never re-executed; it escalates as `execution_outcome_unknown`. A finished execution found on recovery simply completes the run.
 - `reconcile_open` marks waiting/unstarted runs `RESOLVED_BY_HUMAN` when the document leaves VIM's open list, and is skipped unless the listing was complete (paging error or cap).
 - Not covered: HANA dialect, tested PostgreSQL run (code path exists, untested), retention/archival, ESCALATED runs closed by humans (feedback collector).
+
+## Appendix: coding agent
+See `CODING.md` (history + image caveats -> coding; images add caution, never authority).

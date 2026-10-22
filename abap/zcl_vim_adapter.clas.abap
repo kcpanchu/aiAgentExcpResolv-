@@ -119,6 +119,16 @@ CLASS zcl_vim_adapter IMPLEMENTATION.
     ENDLOOP.
   ENDMETHOD.
 
+  METHOD zif_vim_adapter~get_document_image.
+    " TODO(VIM): locate the scanned invoice for the DP document and return page iv_page. Hints to VERIFY:
+    "  - ArchiveLink link tables TOA01/TOA02/TOA03 (SAP_OBJECT, OBJECT_ID -> ARCHIV_ID, ARC_DOC_ID);
+    "    FM ARCHIV_GET_CONNECTIONS lists the links for a business object
+    "  - VIM usually stores the document in OpenText Archive/Content Server; content via the ArchiveLink
+    "    read FMs (e.g. ARCHIVOBJECT_GET_TABLE) or SCMS_* for the content repository
+    "  - the DP document's business object type and key (which OBJECT_ID?) depend on your VIM config
+    "  - multi-page TIFFs: return the requested page only, set ev_page_count
+    RAISE not_implemented.
+  ENDMETHOD.
   METHOD zif_vim_adapter~post_note.
     DATA lv_msg TYPE string.
     call_mapped_action(
