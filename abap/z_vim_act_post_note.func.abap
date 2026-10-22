@@ -17,7 +17,7 @@ FUNCTION z_vim_act_post_note.
 *"     REJECTED
 *"     FAILED
 *"----------------------------------------------------------------------
-  CONSTANTS: lc_prefix  TYPE string VALUE '[AI agent] ',
+  CONSTANTS: lc_prefix  TYPE string VALUE `[AI agent] `,   " backticks keep the trailing blank
              lc_max_len TYPE i VALUE 2000.
   DATA: lv_text  TYPE string,
         lv_docid TYPE c LENGTH 20,
@@ -49,7 +49,7 @@ FUNCTION z_vim_act_post_note.
   ENDIF.
 
   " 3. provenance: every machine-written note is visibly marked
-  IF lv_text(10) <> '[AI agent]'.   " prefix without trailing blank; text is >= 1 char
+  IF lv_text NP '[AI agent]*'.
     lv_text = lc_prefix && lv_text.
   ENDIF.
   lv_len = strlen( lv_text ).
