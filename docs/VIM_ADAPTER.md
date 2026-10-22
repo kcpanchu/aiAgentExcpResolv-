@@ -51,3 +51,14 @@ side can tell policy refusals from outages.
 - Dynamic `SELECT *` on the header table is fine for polling but not tuned; add an index/field list if volume is high.
 - No ABAP Unit yet: after config is confirmed, test with a fake header table via a test seam.
 - `cl_abap_dyn_prg=>quote` and string templates (`|...|`) need NW 7.40+; on older stacks replace with `CONCATENATE` and manual quoting.
+
+## Wrapper: Z_VIM_ACT_POST_NOTE (`abap/z_vim_act_post_note.func.abap`)
+Draft, untested. Done: dedicated authorization object `ZVIM_ACT`/`ZACTION` (create in SU21), input validation,
+control-character stripping, `[AI agent]` provenance prefix, 2000-char cap, fail-closed behaviour.
+To finish: (1) find VIM's note call (trace a manual "add note" in VIM, or read the VIM developer guide) and put it
+in section 5; (2) uncomment/confirm the document-exists check in section 4; (3) add `ZVIM_ACT` / `ZACTION = POST_NOTE`
+to the technical user's role; (4) set the `ZVIM_ACT_MAP` row active.
+Test: call with `IV_PARAMS_JSON` = `ok` on a test document via SE37 and check the note in VIM; then through
+`/IWFND/GW_CLIENT` (POST `NoteSet`), then from the worker with `POST_NOTES=1` and `DRY_RUN=1`.
+Note: `POST_NOTE` ignores dry run by design (notes are low-risk and are how shadow/assist output becomes visible), so
+keep `POST_NOTES=0` until you want reviewers to see agent output.
