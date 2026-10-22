@@ -56,8 +56,8 @@ class EccODataClient:
             return _clean(r.json()["d"])
 
     # ---------------- exceptions ----------------
-    def list_open_exceptions(self, limit: int = 50) -> list[VimException]:
-        rows = self._get("ExceptionSet", **{"$filter": "Status eq 'OPEN'", "$top": str(limit)})
+    def list_open_exceptions(self, limit: int = 50, offset: int = 0) -> list[VimException]:
+        rows = self._get("ExceptionSet", **{"$filter": "Status eq 'OPEN'", "$top": str(limit), "$skip": str(offset)})
         return [self._to_exception(r) for r in rows]
 
     def _to_exception(self, r: dict) -> VimException:

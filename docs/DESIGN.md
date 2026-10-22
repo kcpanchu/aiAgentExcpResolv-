@@ -29,14 +29,14 @@ Status: draft v1. Builds on `APPROACH.md` (why/rollout) and `ECC_BTP_SETUP.md` (
 ## 4. Components
 | Component | Responsibility | Today |
 |---|---|---|
-| Poller | Fetch open exceptions, dedupe, enqueue | `run.py` (in-memory dedupe) |
-| Queue + claim | At-least-once delivery, one worker per exception (lease) | missing |
+| Poller | Fetch open exceptions, dedupe, enqueue | `worker.poll_once` (paged, durable dedupe) |
+| Queue + claim | At-least-once delivery, one worker per exception (lease) | `store.py` (fenced leases) |
 | Triage | Map reason code -> type -> playbook; short-circuit trivial/unsupported | `exception_map.json`, partial |
 | Investigator | Tool-using LLM loop, step/token/cost budget, structured proposal | `agent.py` |
 | Tool layer | Read tools incl. computed facts (variance, tolerance, dup score) | 4 tools, no computed facts |
 | Policy engine | Allowlist, limits, evidence check, risk flags, SoD, mode | `policy.py` |
 | Executor | Idempotent action call, post-condition check, note | partial (`pipeline.py`, `execute_action`) |
-| State store | Runs, tool calls, proposals, decisions, outcomes, feedback | missing (audit JSONL only) |
+| State store | Runs, tool calls, proposals, decisions, outcomes, feedback | runs, events, executions done; feedback missing |
 | Feedback collector | Compare agent vs human outcome, label for eval | missing |
 | Eval harness | Replay golden set, gate releases | missing |
 | Ops | Kill switch, config, alerts, dashboards | env vars only |
@@ -149,7 +149,7 @@ Large tool results go to object storage by reference; PII/bank data is redacted 
 - Dashboards: touchless rate, time-to-resolve, backlog age, override rate, cost per exception, per-type health.
 
 ## 14. Gap list vs. current code (build order)
-1. **State store + claim/lease + idempotent runs** (replace in-memory `seen`) - required before any non-dry run
+1. ~~State store + claim/lease + idempotent runs~~ **done** (`store.py`, `worker.py`); remaining: verification step reads SAP state back, PostgreSQL path tested against a real server
 2. **Computed-fact tools** and `missing_info`/`needs_human_reason` in the proposal schema
 3. **Eval harness** with recorded-fixture replay; golden-set export from ECC (needs `ZCL_VIM_ADAPTER` working)
 4. **Playbook files + config-as-data policy** (replace hard-coded `Policy` defaults), versioned
@@ -162,3 +162,12 @@ Large tool results go to object storage by reference; PII/bank data is redacted 
 Decided: single agent per exception; deterministic policy; OData over Destination/Cloud Connector; shadow-first rollout; vendor/bank mismatch never auto.
 Open: state-store choice (HANA vs PostgreSQL), model hosting route (direct API vs BTP Generative AI Hub), calibrated thresholds
 (need shadow data), who owns playbook changes (AP lead + engineering), retention period for audit data, whether reviewers want a Fiori approval card.
+
+## Appendix: state store and claiming (as built)
+- `run` is unique on `(doc_id, exc_version)`; version = hash of structured fields (notes excluded). Re-polling never duplicates work; a real change starts a new run.
+- **Claim** = conditional `UPDATE ... WHERE state=? AND attempts=?` (optimistic, works on SQLite and PostgreSQL). `attempts` is the **fencing token**: every state write must match `(lease_owner, attempts, state)`, so a worker whose lease expired gets `LostLease` and cannot write.
+- Leased states: CLAIMED, INVESTIGATING, PROPOSED, EXECUTING, VERIFYING. AWAITING_REVIEW and terminal states hold no lease. Expired leases are reclaimed; `prev_state` tells the new worker where the old one died.
+- Failures: exponential backoff (30s doubling, cap 30 min), then ESCALATED after `max_attempts` (also applies to crash loops).
+- **Execution safety:** `(run_id, action)` is a primary key. A second attempt, or a run that died between "begin" and "finish", is never re-executed; it escalates as `execution_outcome_unknown`. A finished execution found on recovery simply completes the run.
+- `reconcile_open` marks waiting/unstarted runs `RESOLVED_BY_HUMAN` when the document leaves VIM's open list, and is skipped unless the listing was complete (paging error or cap).
+- Not covered: HANA dialect, tested PostgreSQL run (code path exists, untested), retention/archival, ESCALATED runs closed by humans (feedback collector).

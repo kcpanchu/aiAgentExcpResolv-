@@ -57,7 +57,6 @@ Check your security team's approval to send invoice data to the model provider, 
 
 ## 5. Known gaps / decisions for you
 - `ZCL_VIM_ADAPTER` is a stub; `config/exception_map.json` codes are placeholders.
-- `seen` set is in memory; add persistence (HANA/PostgreSQL service) so restarts do not reprocess.
-- Audit log is a local file; on CF it is ephemeral, so ship it to your logging/audit service.
+- State is in the database named by `DATABASE_URL` (bind a PostgreSQL service on BTP; `sqlite:///` is for local dev only, since CF disk is ephemeral). Audit events are stored per run; the JSONL file is only an optional mirror.
 - GR query ignores reversals (VGABE 2); net them if GR_MISSING decisions depend on exact quantities.
 - Python and ABAP here are covered by unit tests only on the Python side (fake transport); ABAP is unactivated.

@@ -1,20 +1,9 @@
-from types import SimpleNamespace as NS
-
+from fakes import FakeLLM
 from vim_agent.audit import AuditLog
 from vim_agent.models import Action, Decision, ExceptionType, VimException
 from vim_agent.pipeline import process
 from vim_agent.policy import Policy
 from vim_agent.sap_client import MockSapClient
-
-
-class FakeLLM:
-    """Scripted model: reads the PO, then proposes."""
-    def __init__(self, proposal):
-        self.steps = [
-            [NS(type="tool_use", id="1", name="get_po", input={"po_number": "4500001"})],
-            [NS(type="tool_use", id="2", name="propose_resolution", input=proposal)],
-        ]
-        self.messages = NS(create=lambda **kw: NS(content=self.steps.pop(0)))
 
 
 def sap():

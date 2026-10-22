@@ -11,5 +11,6 @@ applications:
       AUTO_ENABLED: "0"
       POST_NOTES: "0"
       POLL_SECONDS: "300"
+      # DATABASE_URL: take from the PostgreSQL service binding (VCAP_SERVICES); never commit
       # ANTHROPIC_API_KEY: bind via user-provided service / credential store, never commit
     services: [vim-agent-destination, vim-agent-connectivity]

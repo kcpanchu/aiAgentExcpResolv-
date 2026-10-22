@@ -6,6 +6,7 @@ dependencies = ["anthropic", "requests"]
 
 [project.optional-dependencies]
 dev = ["pytest"]
+postgres = ["psycopg[binary]"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
