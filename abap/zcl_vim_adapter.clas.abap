@@ -3,7 +3,7 @@
 *&
 *& DRAFT, UNTESTED. Every VIM-specific name lives in LOAD_CONFIG below and is
 *& marked ASSUMED. Run ZVIM_DISCOVER in your system, correct the config, then
-*& activate in a sandbox client. NW 7.31-compatible syntax.
+*& activate in a sandbox client. Needs NW 7.40+ (string templates).
 *&
 *& Writes never touch VIM tables directly: each agent action is mapped (table
 *& ZVIM_ACT_MAP) to a wrapper function module YOU write around VIM's standard
